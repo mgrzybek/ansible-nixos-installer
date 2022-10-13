@@ -15,19 +15,19 @@ Role Variables
 ```yaml
 # Installation
 install_device: /dev/sda # The device the use to install
-boot_on_zfs: true # For instance, only ZFS is supported
+boot_on_zfs: true        # For instance, only ZFS is supported
 
 # Kernel and SELinux
-hardened_kernel: true # Do we rebuild the package to include SELinux?
+hardened_kernel: true    # Do we rebuild the package to include SELinux?
 
 # Usage
-zsh_default_shell: true # Use zsh instead of bash
-ssh_enabled: true # Start openssh on startup
-ssh_password_auth: true # Allow passwords
+zsh_default_shell: true  # Use zsh instead of bash
+ssh_enabled: true        # Start openssh on startup
+ssh_password_auth: true  # Allow passwords
 
 # Packages
-system_packages: [] # Packages installed systemwise
-users_packages: # Packages reachable by the users
+system_packages: []      # Packages installed systemwise
+users_packages:          # Packages reachable by the users
 - nload
 - vim
 - tmux
@@ -50,7 +50,7 @@ Example Playbook
   become_method: sudo
   gather_facts: false
   roles:
-  - role: nixos
+  - role: ansible-nixos-installer
   vars:
     hardened_kernel: false
     accounts:
