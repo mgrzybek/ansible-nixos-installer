@@ -1,0 +1,27 @@
+- name: Install | Get facts
+  tags: install
+  when: ansible_machine_id is undefined
+  setup:
+
+- name: Install | Generate the main configuration
+  tags: install
+  command: nixos-generate-config --root /mnt
+
+- name: Install | Generate the template
+  tags: install
+  template:
+    src: configuration.nix.j2
+    dest: /mnt/etc/nixos/configuration.nix
+
+- name: Install | Create the directory
+  tags: install
+  file:
+    path: /mnt/boot/efi
+    state: directory
+
+- name: Install | Build the system
+  tags: install
+  command:
+    cmd: nixos-install --no-root-password
+    chdir: /mnt
+

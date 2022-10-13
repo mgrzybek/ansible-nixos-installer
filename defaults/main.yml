@@ -1,0 +1,20 @@
+---
+# Installation
+install_device: /dev/sda
+boot_on_zfs: true
+
+# Kernel and SELinux
+hardened_kernel: true
+
+# Usage
+zsh_default_shell: true
+ssh_enabled: true
+ssh_password_auth: true
+
+# Packages
+system_packages: []
+users_packages:
+- nload
+- vim
+- tmux
+- tcpdump

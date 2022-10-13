@@ -1,0 +1,14 @@
+galaxy_info:
+  author: Mathieu GRZYBEK
+  description: This role is used to install NixOS by SSH using the ISO image.
+
+  license: GPL-3.0-only
+
+  min_ansible_version: 2.9
+
+  galaxy_tags:
+  - nixos
+  - installer
+  - ssh
+
+dependencies: []

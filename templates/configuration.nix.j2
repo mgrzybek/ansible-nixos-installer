@@ -1,0 +1,139 @@
+# Edit this configuration file to define what should be installed on
+# your system.  Help is available in the configuration.nix(5) man page
+# and in the NixOS manual (accessible by running ‘nixos-help’).
+{ config, pkgs, ... }:
+
+{
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+    ];
+
+{% if boot_on_zfs is true %}
+  # ZFS at boot
+  # https://nixos.wiki/wiki/ZFS
+  # https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS.html
+  boot.supportedFilesystems = with pkgs ;[ "zfs" ];
+  networking.hostId = "{{ ansible_machine_id[:8] }}";
+{% endif %}
+
+  boot.loader = {
+    efi = {
+      canTouchEfiVariables = true;
+    };
+    grub = {
+       enable = true;
+       efiSupport = true;
+       device = "nodev";
+       configurationName = "Standard kernel";
+    };
+  };
+
+  # Define your hostname.
+  networking.hostName = "nixos"; 
+  # Pick only one of the below networking options.
+  networking.networkmanager.enable = false;
+
+  # Set your time zone.
+  time.timeZone = "Europe/Paris";
+
+  # Users security
+  users.mutableUsers = false;
+
+{% if zsh_default_shell is true %}
+  # Users tools
+  programs.zsh.enable = true;
+  users.defaultUserShell = pkgs.zsh;
+  environment.shells = with pkgs ; [ zsh ];
+{% endif %}
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+{% for user in accounts %}
+  users.users.{{ user.username }} = {
+{% if user.password is defined %}
+    initialPassword = "{{ user.password }}";
+{% endif %}
+    isNormalUser = {{ user.is_normal_user | ternary("true","false") }};
+    extraGroups = [
+      "wheel"
+    ];
+    packages = with pkgs; [
+      {{ users_packages | join(" ") }}
+{% if zsh_default_shell is true %}
+      zsh
+{% endif %}
+    ];
+    openssh.authorizedKeys.keys = [
+{% if ssh_enabled is true %}
+{% for k in user.ssh_keys %}
+      "{{ k }}"
+{% endfor %}
+{% endif %}
+    ];
+  };
+{% endfor %}
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  # policycoreutils is for load_policy, fixfiles, setfiles, setsebool, semodile, and sestatus.
+  # optional: libselinux libsemanage
+  environment.systemPackages = with pkgs; [
+    {{ system_packages | join(" ") }}
+{% if hardened_kernel is true %}
+    policycoreutils 
+{% endif %}
+  ];
+
+{% if ssh_enabled is true %}
+  # Enable the OpenSSH daemon.
+  services.openssh = {
+    enable = true;
+    passwordAuthentication = {{ ssh_password_auth | ternary("true","false") }};
+    kbdInteractiveAuthentication = false;
+  };
+{% endif %}
+
+  # Set a hardened kernel
+  # https://nixos.wiki/wiki/Linux_kernel
+  #boot.kernelPackages = pkgs.linuxPackages_latest;
+  # tell kernel to use SE Linux
+  #  "enforcing=1"
+  boot.kernelParams = [
+{% if hardened_kernel | lower == "true" %}
+    "security=selinux"
+{% endif %}
+  ];
+{% if hardened_kernel | lower == "true" %}
+  # compile kernel with SE Linux support - but also support for other LSM modules
+  #boot.kernelPatches = [ {
+  #     name = "selinux-config";
+  #     patch = null;
+  #     extraConfig = ''
+  #             SECURITY_SELINUX y
+  #             SECURITY_SELINUX_BOOTPARAM n
+  #             SECURITY_SELINUX_DISABLE n
+  #             SECURITY_SELINUX_DEVELOP y
+  #             SECURITY_SELINUX_AVC_STATS y
+  #             SECURITY_SELINUX_CHECKREQPROT_VALUE 0
+  #             DEFAULT_SECURITY_SELINUX n
+  #           '';
+  #     } ];
+  # Build systemd with SE Linux support
+  # so it loads policy at boot and supports file labelling
+  systemd.package = pkgs.systemd.override { withSelinux = true; };
+{% endif %}
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ];
+  # networking.firewall.allowedUDPPorts = [ ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = true;
+
+  # Copy the NixOS configuration file and link it from the resulting system
+  # (/run/current-system/configuration.nix). This is useful in case you
+  # accidentally delete configuration.nix.
+  system.copySystemConfiguration = true;
+
+  system.stateVersion = "{{ ansible_distribution_version }}";
+}
+

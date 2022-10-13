@@ -1,0 +1,14 @@
+- name: Pre-Install | Check Python
+  raw: which python || echo KO
+  register: test_python
+  changed_when: false
+
+- name: Pre-Install | Install Python
+  raw: sudo nix-env -iA nixos.python3Minimal
+  when:
+  - test_python.stdout_lines | length >= 2
+  - test_python.stdout_lines[-1] == "KO"
+
+- name: Pre-Install | Gather facts
+  setup:
+

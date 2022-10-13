@@ -1,0 +1,4 @@
+- name: Post-Install | Reboot
+  tags: post-install
+  reboot:
+    reboot_timeout: 360
