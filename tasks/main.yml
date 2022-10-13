@@ -11,10 +11,10 @@
 - name: Assert | Check accounts
   assert:
     fail_msg: At least one account must be installed
-    that: accounts | length > 0 
+    that: accounts | length > 0
 
 - name: Assert | Check each account
-  loop: "{{ accounts }}"
+  loop: '{{ accounts }}'
   assert:
     success_msg: Account {{ item.username }} looks ok
     fail_msg: The given account is misconfigured
@@ -28,9 +28,9 @@
 
 - name: Assert | Check install_device
   assert:
-   fail_msg: Cannot find the install device
-   that:
-   - install_device is string
+    fail_msg: Cannot find the install device
+    that:
+    - install_device is string
 
 - name: Pre-Install | ZFS
   include_tasks: nixos_pre_install_zfs.yml
@@ -40,4 +40,4 @@
 
 - name: Post-Install | Reboot
   include_tasks: nixos_post_install.yml
-  
+

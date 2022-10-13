@@ -51,7 +51,7 @@
   - pre-install
   - zfs
   command:
-    cmd: "{{ item }}"
+    cmd: '{{ item }}'
     warn: false
   with_items:
   - mount -t zfs rpool/root/nixos /mnt
@@ -66,7 +66,7 @@
   - pre-install
   - zfs
   command:
-    cmd: "{{ item }}"
+    cmd: '{{ item }}'
     warn: false
   with_items:
   - mkfs.vfat {{ install_device }}3

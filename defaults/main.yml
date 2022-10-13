@@ -1,4 +1,3 @@
----
 # Installation
 install_device: /dev/sda
 boot_on_zfs: true
