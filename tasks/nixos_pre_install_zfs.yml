@@ -16,7 +16,14 @@
   - zfs
   command: sgdisk -n1:0:0 -t1:BF01 {{ install_device }}
 
+- name: Pre-Install | Check if the pool exists
+  shell: zpool list | fgrep -c rpool
+  failed_when: false
+  changed_when: false
+  register: rpool_status
+
 - name: Pre-Install | Create the pool
+  when: rpool_status.stdout_lines[0] == "0"
   tags:
   - pre-install
   - zfs
@@ -35,7 +42,11 @@
   tags:
   - pre-install
   - zfs
-  command: zfs create -o mountpoint={{ item.mp }} {{ item.path  }}
+  community.general.zfs:
+    state: present
+    name: '{{ item.path  }}'
+    extra_zfs_properties:
+      mountpoint: '{{ item.mp }}'
   with_items:
   - mp: none
     path: rpool/root
@@ -50,26 +61,26 @@
   tags:
   - pre-install
   - zfs
-  command:
+  shell:
     cmd: '{{ item }}'
     warn: false
   with_items:
-  - mount -t zfs rpool/root/nixos /mnt
+  - df /mnt | grep rpool/root/nixos || mount -t zfs rpool/root/nixos /mnt
   - mkdir -p /mnt/nix/store
-  - mount -t zfs rpool/root/nixos/store /mnt/nix/store
-  - mkdir /mnt/home
+  - df /mnt/nix/store | grep rpool/root/nixos/store || mount -t zfs rpool/root/nixos/store /mnt/nix/store
+  - mkdir -p /mnt/home
   - mkdir -p /mnt/etc/nixos
-  - mount -t zfs rpool/home /mnt/home
+  - df /mnt/home | grep rpool/home || mount -t zfs rpool/home /mnt/home
 
 - name: Pre-Install | Make UEFI as a vfat partition
   tags:
   - pre-install
   - zfs
-  command:
+  shell:
     cmd: '{{ item }}'
     warn: false
   with_items:
-  - mkfs.vfat {{ install_device }}3
-  - mkdir /mnt/boot
-  - mount {{ install_device }}3 /mnt/boot
+  - df /mnt/boot | grep /mnt/boot || mkfs.vfat {{ install_device }}3
+  - mkdir -p /mnt/boot
+  - df /mnt/boot | grep /mnt/boot || mount {{ install_device }}3 /mnt/boot
 
