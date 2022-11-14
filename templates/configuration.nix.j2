@@ -55,7 +55,9 @@
 {% endif %}
     isNormalUser = {{ user.is_normal_user | ternary("true","false") }};
     extraGroups = [
-      "wheel"
+{% for item in user.extra_groups %}
+      "{{ item }}"
+{% endfor %}
     ];
     packages = with pkgs; [
       {{ users_packages | join(" ") }}

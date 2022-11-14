@@ -55,7 +55,8 @@ Example Playbook
     hardened_kernel: false
     accounts:
     - username: mathieu
-      is_system_user: true
+      extra_groups:
+      - "wheel"
       ssh_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIkybLMMI3B5nNpr7lOBgxbcz06uQNe69d1elYnWQyPx mathieu"
 ```

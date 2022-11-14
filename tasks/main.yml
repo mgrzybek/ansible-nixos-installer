@@ -21,7 +21,6 @@
     that:
     - item.username | length > 0
     - item.ssh_keys is defined or item.password is defined
-    - item.is_system_user is boolean
 
 - name: Pre-Install | Install Python
   include_tasks: nixos_pre_install_python.yml
