@@ -2,3 +2,4 @@
   tags: post-install
   reboot:
     reboot_timeout: 360
+    reboot_command: /run/current-system/sw/bin/shutdown
