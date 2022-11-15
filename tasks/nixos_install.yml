@@ -4,24 +4,44 @@
   setup:
 
 - name: Install | Generate the main configuration
+  when: patch_live_system is false
   tags: install
   command: nixos-generate-config --root /mnt
 
-- name: Install | Generate the template
+- name: Install | Generate configuration.nix
+  when: import_configuration is false
   tags: install
+  register: configuration_state
   template:
     src: configuration.nix.j2
-    dest: /mnt/etc/nixos/configuration.nix
+    dest: '{{ configuration_nix_path }}'
 
-- name: Install | Create the directory
+- name: Install | Import configuration.nix
+  when: import_configuration is true
   tags: install
-  file:
-    path: /mnt/boot/efi
-    state: directory
+  register: configuration_state
+  copy:
+    src: '{{ configuration_nix }}'
+    dest: '{{ configuration_nix_path }}'
 
-- name: Install | Build the system
-  tags: install
-  command:
-    cmd: nixos-install --no-root-password
-    chdir: /mnt
+- name: Install | Full system install
+  when: patch_live_system is false
+  block:
+  - name: Install | Create the directory
+    tags: install
+    file:
+      path: /mnt/boot/efi
+      state: directory
 
+  - name: Install | Build the system
+    tags: install
+    when: configuration_state.changed
+    command:
+      cmd: nixos-install --no-root-password
+      chdir: /mnt
+
+- name: Install | Switch the system
+  when:
+  - patch_live_system is true
+  - configuration_state.changed
+  command: nixos-rebuild switch

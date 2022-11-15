@@ -1,6 +1,7 @@
 # Installation
 install_device: /dev/sda
 boot_on_zfs: true
+patch_live_system: false
 
 # Kernel and SELinux
 hardened_kernel: true
@@ -17,3 +18,6 @@ users_packages:
 - vim
 - tmux
 - tcpdump
+
+# Importing an existing configuration
+configuration_nix:

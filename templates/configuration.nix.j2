@@ -47,7 +47,7 @@
   environment.shells = with pkgs ; [ zsh ];
 {% endif %}
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define a user account. Don't forget to set a password with ’passwd’.
 {% for user in accounts %}
   users.users.{{ user.username }} = {
 {% if user.password is defined %}
@@ -55,9 +55,11 @@
 {% endif %}
     isNormalUser = {{ user.is_normal_user | ternary("true","false") }};
     extraGroups = [
+{% if user.extra_groups is defined %}
 {% for item in user.extra_groups %}
       "{{ item }}"
 {% endfor %}
+{% endif %}
     ];
     packages = with pkgs; [
       {{ users_packages | join(" ") }}
@@ -74,6 +76,10 @@
     ];
   };
 {% endfor %}
+
+  # Sudo configuration
+  security.sudo.execWheelOnly = true;
+  security.sudo.wheelNeedsPassword = false;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

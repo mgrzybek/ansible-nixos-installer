@@ -1,42 +1,44 @@
-- name: Pre-Install | Wipe the partition table
-  tags:
-  - pre-install
-  - zfs
-  command: sgdisk --zap-all {{ install_device }}
-
-- name: Pre-Install | Make the UEFI partition
-  tags:
-  - pre-install
-  - zfs
-  command: sgdisk -n3:1M:+512M -t3:EF00 {{ install_device }}
-
-- name: Pre-Install | Create the ZFS partition
-  tags:
-  - pre-install
-  - zfs
-  command: sgdisk -n1:0:0 -t1:BF01 {{ install_device }}
-
 - name: Pre-Install | Check if the pool exists
   shell: zpool list | fgrep -c rpool
   failed_when: false
   changed_when: false
   register: rpool_status
 
-- name: Pre-Install | Create the pool
+- name: Pre-Install | Wipe the disk if no zfs rpool found
   when: rpool_status.stdout_lines[0] == "0"
-  tags:
-  - pre-install
-  - zfs
-  command: |
-    zpool create -f \
-      -O mountpoint=none \
-      -O atime=off \
-      -O compression=lz4 \
-      -O xattr=sa \
-      -O acltype=posixacl \
-      -o ashift=12 \
-      -R /mnt \
-      rpool {{ install_device }}1
+  block:
+  - name: Pre-Install | Wipe the partition table
+    tags:
+    - pre-install
+    - zfs
+    command: sgdisk --zap-all {{ install_device }}
+
+  - name: Pre-Install | Make the UEFI partition
+    tags:
+    - pre-install
+    - zfs
+    command: sgdisk -n3:1M:+512M -t3:EF00 {{ install_device }}
+
+  - name: Pre-Install | Create the ZFS partition
+    tags:
+    - pre-install
+    - zfs
+    command: sgdisk -n1:0:0 -t1:BF01 {{ install_device }}
+
+  - name: Pre-Install | Create the pool
+    tags:
+    - pre-install
+    - zfs
+    command: |
+      zpool create -f \
+        -O mountpoint=none \
+        -O atime=off \
+        -O compression=lz4 \
+        -O xattr=sa \
+        -O acltype=posixacl \
+        -o ashift=12 \
+        -R /mnt \
+        rpool {{ install_device }}1
 
 - name: Pre-Install | Create the datasets
   tags:

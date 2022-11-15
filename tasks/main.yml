@@ -1,37 +1,83 @@
+- name: Set facts
+  set_fact:
+    import_configuration: false
+
+- name: Set facts (live patching is true)
+  when: patch_live_system is true
+  set_fact:
+    configuration_nix_path: /etc/nixos/configuration.nix
+
+- name: Set facts (live patching is false)
+  when: patch_live_system is false
+  set_fact:
+    configuration_nix_path: /mnt/etc/nixos/configuration.nix
+
 - name: Assert | Check booleans
   assert:
     fail_msg: Some boolean variables cannot be recognised
     that:
     - boot_on_zfs is boolean
-    - hardened_kernel is boolean
-    - ssh_enabled is boolean
-    - ssh_password_auth is boolean
-    - zsh_default_shell is boolean
 
-- name: Assert | Check accounts
-  assert:
-    fail_msg: At least one account must be installed
-    that: accounts | length > 0
+- name: Assert | Check the given configuration.nix file (1)
+  when: configuration_nix != None
+  block:
+  - name: Assert | Check the given configuration.nix file (1)
+    delegate_to: localhost
+    become: false
+    register: stats_result
+    stat:
+      path: '{{ configuration_nix }}'
 
-- name: Assert | Check each account
-  loop: '{{ accounts }}'
-  assert:
-    success_msg: Account {{ item.username }} looks ok
-    fail_msg: The given account is misconfigured
-    that:
-    - item.username | length > 0
-    - item.ssh_keys is defined or item.password is defined
+  - name: Assert | Check the given configuration.nix file (2)
+    assert:
+      fail_msg: The given configuration does not exist or is empty
+      that:
+      - stats_result.stat.exists == true
+      - stats_result.stat.size > 0
+
+  - name: Set facts
+    set_fact:
+      import_configuration: true
+
+- name: Assert | Check attributes to generate configuration.nix
+  when: import_configuration is false
+  block:
+  - name: Assert | Check booleans
+    assert:
+      fail_msg: Some boolean variables cannot be recognised
+      that:
+      - boot_on_zfs is boolean
+      - hardened_kernel is boolean
+      - ssh_enabled is boolean
+      - ssh_password_auth is boolean
+      - zsh_default_shell is boolean
+
+  - name: Assert | Check accounts
+    assert:
+      fail_msg: At least one account must be installed
+      that: accounts | length > 0
+
+  - name: Assert | Check each account
+    loop: '{{ accounts }}'
+    assert:
+      success_msg: Account {{ item.username }} looks ok
+      fail_msg: The given account is misconfigured
+      that:
+      - item.username | length > 0
+      - item.ssh_keys is defined or item.password is defined
 
 - name: Pre-Install | Install Python
   include_tasks: nixos_pre_install_python.yml
 
 - name: Assert | Check install_device
+  when: patch_live_system is false
   assert:
     fail_msg: Cannot find the install device
     that:
     - install_device is string
 
 - name: Pre-Install | ZFS
+  when: patch_live_system is false
   include_tasks: nixos_pre_install_zfs.yml
 
 - name: Install | Install the system
@@ -39,4 +85,3 @@
 
 - name: Post-Install | Reboot
   include_tasks: nixos_post_install.yml
-

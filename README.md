@@ -42,6 +42,7 @@ N.A.
 Example Playbook
 ----------------
 
+This example generates `configuration.nix` using the given parameters:
 ```yaml
 - name: Install NixOS
   hosts: all
@@ -59,6 +60,35 @@ Example Playbook
       - "wheel"
       ssh_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIkybLMMI3B5nNpr7lOBgxbcz06uQNe69d1elYnWQyPx mathieu"
+```
+
+This example generates imports the given `configuration.nix`:
+```yaml
+- name: Install NixOS
+  hosts: all
+  user: nixos
+  become: true
+  become_method: sudo
+  gather_facts: false
+  roles:
+  - role: ansible-nixos-installer
+  vars:
+    configuration_nix: /my/path/configuration.nix
+```
+
+This example patches a running system with a new provided configuration:
+```yaml
+- name: Patch a live NixOS
+  hosts: all
+  user: my-admin-user
+  become: true
+  become_method: sudo
+  gather_facts: false
+  roles:
+  - role: ansible-nixos-installer
+  vars:
+    patch_live_system: true
+    configuration_nix: /my/path/configuration.nix
 ```
 
 License

@@ -1,5 +1,6 @@
 - name: Post-Install | Reboot
   tags: post-install
+  when: configuration_state.changed
   reboot:
     reboot_timeout: 360
     reboot_command: /run/current-system/sw/bin/shutdown
