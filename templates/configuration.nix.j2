@@ -17,6 +17,10 @@
   networking.hostId = "{{ ansible_machine_id[:8] }}";
 {% endif %}
 
+  # Only the store can exec binaries
+  fileSystems."/".options = [ "noexec" ];
+  fileSystems."/home".options = [ "noexec" ];
+
   boot.loader = {
     efi = {
       canTouchEfiVariables = true;
@@ -39,6 +43,7 @@
 
   # Users security
   users.mutableUsers = false;
+  nix.allowedUsers = [ "@wheel" ];
 
 {% if zsh_default_shell is true %}
   # Users tools
@@ -81,6 +86,9 @@
   security.sudo.execWheelOnly = true;
   security.sudo.wheelNeedsPassword = false;
 
+  # Rip out default packages
+  environment.defaultPackages = [];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   # policycoreutils is for load_policy, fixfiles, setfiles, setsebool, semodile, and sestatus.
@@ -98,6 +106,16 @@
     enable = true;
     passwordAuthentication = {{ ssh_password_auth | ternary("true","false") }};
     kbdInteractiveAuthentication = false;
+
+    allowSFTP = false; # Don't set this if you need sftp
+    extraConfig = ''
+      AllowTcpForwarding yes
+      X11Forwarding no
+      AllowAgentForwarding no
+      AllowStreamLocalForwarding no
+      AuthenticationMethods publickey
+    '';
+
   };
 {% endif %}
 
