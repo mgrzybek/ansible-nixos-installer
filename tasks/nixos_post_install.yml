@@ -1,6 +1,8 @@
 - name: Post-Install | Reboot
   tags: post-install
-  when: configuration_state.changed
+  when:
+  - import_configuration_state.changed or generate_configuration_state.changed
+  - patch_live_system is false
   reboot:
     reboot_timeout: 360
     reboot_command: /run/current-system/sw/bin/shutdown

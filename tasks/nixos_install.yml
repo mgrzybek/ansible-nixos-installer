@@ -11,7 +11,7 @@
 - name: Install | Generate configuration.nix
   when: import_configuration is false
   tags: install
-  register: configuration_state
+  register: generate_configuration_state
   template:
     src: configuration.nix.j2
     dest: '{{ configuration_nix_path }}'
@@ -19,7 +19,7 @@
 - name: Install | Import configuration.nix
   when: import_configuration is true
   tags: install
-  register: configuration_state
+  register: import_configuration_state
   copy:
     src: '{{ configuration_nix }}'
     dest: '{{ configuration_nix_path }}'
@@ -35,7 +35,9 @@
 
   - name: Install | Build the system
     tags: install
-    when: configuration_state.changed
+    when: import_configuration_state.changed or generate_configuration_state.changed
+    notify:
+    - reboot
     command:
       cmd: nixos-install --no-root-password
       chdir: /mnt
@@ -43,5 +45,5 @@
 - name: Install | Switch the system
   when:
   - patch_live_system is true
-  - configuration_state.changed
+  - import_configuration_state.changed or generate_configuration_state.changed
   command: nixos-rebuild switch
