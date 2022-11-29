@@ -17,8 +17,10 @@ Role Variables
 install_device: /dev/sda # The device the use to install
 boot_on_zfs: true        # For instance, only ZFS is supported
 
-# Kernel and SELinux
+# Hardening
 hardened_kernel: true    # Do we rebuild the package to include SELinux?
+hardened_fs: true        # Do we set noexec attributes on partitions?
+hardened_auditing: true  # Do we install auditd?
 
 # Usage
 zsh_default_shell: true  # Use zsh instead of bash

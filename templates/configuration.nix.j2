@@ -9,6 +9,11 @@
       ./hardware-configuration.nix
     ];
 
+  # Build everything from sources
+  nix.extraOptions = ''
+    substitute = {{ substitute | ternary("true","false")  }}
+  '';
+
 {% if boot_on_zfs is true %}
   # ZFS at boot
   # https://nixos.wiki/wiki/ZFS
@@ -18,8 +23,10 @@
 {% endif %}
 
   # Only the store can exec binaries
+{% if hardened_fs %}
   fileSystems."/".options = [ "noexec" ];
   fileSystems."/home".options = [ "noexec" ];
+{% endif %}
 
   boot.loader = {
     efi = {
@@ -34,7 +41,7 @@
   };
 
   # Define your hostname.
-  networking.hostName = "nixos"; 
+  networking.hostName = "{{ hostname }}"; 
   # Pick only one of the below networking options.
   networking.networkmanager.enable = false;
 
@@ -86,6 +93,15 @@
   security.sudo.execWheelOnly = true;
   security.sudo.wheelNeedsPassword = false;
 
+{% if hardened_auditing %}
+  # Auditing
+  security.auditd.enable = true;
+  security.audit.enable = true;
+  security.audit.rules = [
+    "-a exit,always -F arch=b64 -S execve"
+  ];
+{% endif %}
+
   # Rip out default packages
   environment.defaultPackages = [];
 
@@ -121,7 +137,9 @@
 
   # Set a hardened kernel
   # https://nixos.wiki/wiki/Linux_kernel
-  #boot.kernelPackages = pkgs.linuxPackages_latest;
+{% if kernel_latest %}
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+{% endif %}
   # tell kernel to use SE Linux
   #  "enforcing=1"
   boot.kernelParams = [

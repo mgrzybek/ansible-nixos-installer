@@ -36,8 +36,6 @@
   - name: Install | Build the system
     tags: install
     when: import_configuration_state.changed or generate_configuration_state.changed
-    notify:
-    - reboot
     command:
       cmd: nixos-install --no-root-password
       chdir: /mnt

@@ -2,9 +2,12 @@
 install_device: /dev/sda
 boot_on_zfs: true
 patch_live_system: false
+kernel_latest: false
 
-# Kernel and SELinux
+# Hardening
 hardened_kernel: true
+hardened_fs: true
+hardened_auditing: true
 
 # Usage
 zsh_default_shell: true
@@ -21,3 +24,6 @@ users_packages:
 
 # Importing an existing configuration
 configuration_nix:
+
+# Force compilation
+substitute: true

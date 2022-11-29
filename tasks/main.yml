@@ -46,8 +46,9 @@
     assert:
       fail_msg: Some boolean variables cannot be recognised
       that:
-      - boot_on_zfs is boolean
       - hardened_kernel is boolean
+      - hardened_fs is boolean
+      - hardened_auditing is boolean
       - ssh_enabled is boolean
       - ssh_password_auth is boolean
       - zsh_default_shell is boolean
